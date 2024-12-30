@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi QR Code Generator</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: #333;
+            overflow: hidden;
+            animation: backgroundAnimation 10s infinite alternate;
+        }
+
+        @keyframes backgroundAnimation {
+            0% {
+                background: linear-gradient(135deg, #6e8efb, #a777e3);
+            }
+            100% {
+                background: linear-gradient(135deg, #a777e3, #6e8efb);
+            }
+        }
+
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            transform: scale(0);
+            animation: containerAnimation 0.8s forwards;
+        }
+
+        @keyframes containerAnimation {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #444;
+            margin-bottom: 20px;
+            animation: textAnimation 1s ease-out;
+        }
+
+        @keyframes textAnimation {
+            0% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: #6e8efb;
+            outline: none;
+            transform: scale(1.05);
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .qr-code {
+            margin-top: 30px;
+            opacity: 0;
+            animation: qrCodeAnimation 0.5s forwards 0.5s;
+        }
+
+        @keyframes qrCodeAnimation {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .qr-code img {
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-width: 100%;
+            height: auto;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 1rem;
+            padding: 10px 20px;
+            border-radius: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+        }
+
+        footer strong {
+            color: #6e8efb;
+        }
+
+        .info-section {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px; /* زيادة المسافة الداخلية */
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 50px; /* زيادة المسافة بين الحقول والـ Info section */
+            margin-left: 20px;  /* مسافة إضافية من الجهة اليسرى */
+            margin-right: 20; /* مسافة إضافية من الجهة اليمنى */
+            width: 100%;
+            max-width: 450px;
+            font-size: 1.1rem;
+            color: #444;
+            opacity: 0;
+            animation: infoSectionAnimation 0.8s forwards 0.5s;
+        }
+
+        @keyframes infoSectionAnimation {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-section h2 {
+            color: #6e8efb;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+        }
+
+        .info-section p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .info-section ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            text-align: left;
+            margin-top: 15px;
+        }
+
+        .info-section ul li {
+            font-size: 1rem;
+            color: #555;
+        }
+
+    </style>
+    <script>
+        function generateQRCode() {
+            const ssid = document.getElementById('ssid').value;
+            const password = document.getElementById('password').value;
+            const encryption = document.getElementById('encryption').value;
+
+            if (!ssid) {
+                alert('Please enter the WiFi SSID.');
+                return;
+            }
+
+            const qrData = `WIFI:T:${encryption};S:${ssid};P:${password};;`;
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrData)}&size=300x300&margin=10`;
+
+            const qrCodeImage = document.getElementById('qr-code-img');
+            qrCodeImage.src = qrCodeUrl;
+            qrCodeImage.style.display = 'block';
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>WiFi QR Code Generator</h1>
+        <label for="ssid">WiFi SSID:</label>
+        <input type="text" id="ssid" placeholder="Enter WiFi Name">
+
+        <label for="password">WiFi Password:</label>
+        <input type="text" id="password" placeholder="Enter WiFi Password">
+
+        <label for="encryption">Encryption:</label>
+        <select id="encryption">
+
+            <option value="WPA">WPA/WPA2</option>
+            <option value="WEP">WEP</option>
+            <option value="">None</option>
+
+        </select>
+
+        <button onclick="generateQRCode()">Generate QR Code</button>
+
+        <div class="qr-code">
+            <img id="qr-code-img" alt="QR Code" style="display:none; margin-top: 20px;">
+        </div>
+    </div>
+
+    <!-- Added Info Section -->
+    <div class="info-section">
+        <h2>How the Site Works</h2>
+        <p>Welcome to the WiFi QR Code Generator! This site allows you to quickly generate a QR code for your WiFi network. Here's how it works:</p>
+        <ul>
+            <li><strong>Enter the WiFi SSID:</strong> Type the name of your WiFi network.</li>
+            <li><strong>Enter the WiFi Password:</strong> Provide the password for your network (if applicable).</li>
+            <li><strong>Choose the Encryption Type:</strong> Select whether your network uses WPA, WPA2, WEP, or no encryption.</li>
+            <li><strong>Generate the QR Code:</strong> Click the "Generate QR Code" button, and the QR code will be generated below.</li>
+            <li><strong>Scan the QR Code:</strong> Anyone can scan the code with their phone to connect to your WiFi without typing the password.</li>
+        </ul>
+        <p>This makes sharing WiFi access much easier, especially in places like cafes, offices, or public spaces.</p>
+    </div>
+
+    <footer>
+        <p>Powered by <strong>HAJJI</strong> using QR Code API</p>
+    </footer>
+</body>
+</html>
